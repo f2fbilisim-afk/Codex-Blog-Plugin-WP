@@ -11,7 +11,7 @@ WordPress 6.4+ / PHP 7.4+ için Perplexity ve OpenAI destekli blog taslağı ür
 
 ## Davranış
 
-- Perplexity `sonar-pro` ile Türkçe makale ve kaynak bağlantıları üretir.
+- Perplexity Agent API (`/v1/responses`, `sonar-pro` preset) ile Türkçe makale ve kaynak bağlantıları üretir.
 - Görünür makale metni 1600 karakterin altındaysa taslak oluşturmaz.
 - OpenAI `gpt-image-1` ile bir öne çıkan görsel ve bir içerik görseli üretir; medya kütüphanesine alternatif metinle kaydeder.
 - Görsel hatasında metin taslağını ve başarılı medya dosyalarını korur; hata mesajında taslak numarasını gösterir.
@@ -32,3 +32,11 @@ SEO/GEO yapısı görünürlüğe yardımcı olur; Google veya yapay zekâ arama
 ## 1.0.1 hata tanılama
 
 API hataları servis adını ve varsa JSON hata açıklamasını gösterir. Anahtarlar maskelenir; ham HTML yanıtları gösterilmez. Açıklamasız 403, tek başına anahtar veya bakiye hatası anlamına gelmez. Hosting sağlayıcınızdan WordPress sunucusunun `api.perplexity.ai:443` çıkışına izin verildiğini kontrol etmesini isteyin.
+
+## 1.0.2 — Perplexity Agent API geçişi
+
+Eski Chat Completions isteği yerine `POST https://api.perplexity.ai/v1/responses` kullanılır. `model/messages/max_tokens` alanları `preset/instructions/input/max_output_tokens` biçimine taşındı. Web araması ve JSON şeması istenir; makale `output` içindeki assistant mesajlarından, kaynaklar metin annotations veya search_results öğelerinden alınır. Tamamlanmamış yanıtlar taslak oluşturmaz. Kaynak listesindeki URL'lerin içerik iddialarını desteklediğini editör kontrol etmelidir.
+
+API sözleşmesi Perplexity'nin resmî [Python SDK tipleri](https://github.com/perplexityai/perplexity-py/tree/main/src/perplexity/types) üzerinden doğrulandı. Geçiş belgesi: https://docs.perplexity.ai/docs/agent-api/migrate-from-sonar/overview
+
+API anahtarları ve ayar adı değişmedi. WordPress eklenti yükleme ekranından yeni ZIP ile mevcut sürümü değiştirin; anahtarları yeniden girmeniz gerekmez. Canlı API çağrısı hesap erişimi gerektirir; otomatik testler API yanıtlarını simüle eder.
