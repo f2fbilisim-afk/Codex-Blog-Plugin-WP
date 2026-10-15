@@ -28,3 +28,7 @@ SEO/GEO yapısı görünürlüğe yardımcı olur; Google veya yapay zekâ arama
 ## Doğrulama
 
 `php -l codex-blog.php` ile sözdizimini denetleyin. Gerçek WordPress ortamında yetki/nonce kontrolünü, anahtar kaydetme/silme işlemlerini, görselsiz ve görselli taslağı, minimum uzunluğu, medya alternatif metinlerini, API hata durumunda taslak korunmasını ve yayımlanmış sayfanın meta/JSON-LD çıktısını kontrol edin. Canlı üretim testleri geçerli API anahtarları ve ücretli API çağrıları gerektirir.
+
+## 1.0.1 hata tanılama
+
+API hataları servis adını ve varsa JSON hata açıklamasını gösterir. Anahtarlar maskelenir; ham HTML yanıtları gösterilmez. Açıklamasız 403, tek başına anahtar veya bakiye hatası anlamına gelmez. Hosting sağlayıcınızdan WordPress sunucusunun `api.perplexity.ai:443` çıkışına izin verildiğini kontrol etmesini isteyin.

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Codex AI Blog
  * Description: Perplexity ve OpenAI ile kaynaklı, görselli blog taslakları üretir.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Author: F2F Bilişim
@@ -77,8 +77,35 @@ final class Codex_AI_Blog {
         $response = wp_remote_post($url, array('timeout' => 120, 'headers' => array('Authorization' => 'Bearer ' . $key, 'Content-Type' => 'application/json'), 'body' => wp_json_encode($body)));
         if (is_wp_error($response)) { throw new RuntimeException('API bağlantısı kurulamadı. Ağ bağlantısını ve sunucu zaman aşımını kontrol edin.'); }
         $status = wp_remote_retrieve_response_code($response);
-        if ($status < 200 || $status >= 300) { throw new RuntimeException('API isteği başarısız (HTTP ' . intval($status) . '). Anahtar, bakiye ve model erişimini kontrol edin.'); }
         $data = json_decode(wp_remote_retrieve_body($response), true);
+        if ($status < 200 || $status >= 300) {
+            $service = 'api.perplexity.ai' === wp_parse_url($url, PHP_URL_HOST) ? 'Perplexity' : 'OpenAI';
+            $detail = '';
+            if (is_array($data)) {
+                $error = $data['error'] ?? null;
+                if (is_array($error) && isset($error['message']) && is_string($error['message'])) {
+                    $detail = $error['message'];
+                } elseif (is_string($error)) {
+                    $detail = $error;
+                } elseif (isset($data['message']) && is_string($data['message'])) {
+                    $detail = $data['message'];
+                }
+            }
+            // Never display raw HTML responses, authentication headers or API keys.
+            if ($detail) {
+                foreach (array($key, self::key('perplexity'), self::key('openai')) as $secret) {
+                    if (is_string($secret) && '' !== $secret) { $detail = str_replace($secret, '[gizlendi]', $detail); }
+                }
+                $detail = preg_replace('/(?:Bearer\s+\S+|(?:sk-|pplx-)[A-Za-z0-9_-]+)/i', '[gizlendi]', $detail);
+                $detail = self::clip(sanitize_text_field($detail), 500);
+            }
+            if (!$detail) {
+                $detail = 403 === $status
+                    ? 'Servis açıklayıcı JSON hata yanıtı vermedi. Hosting çıkış IP engeli, güvenlik duvarı veya servis erişim politikası olasıdır; bu yanıt tek başına bakiye sorunu olduğunu göstermez.'
+                    : 'Servis açıklayıcı JSON hata yanıtı vermedi. API hesabını ve sunucu bağlantısını kontrol edin.';
+            }
+            throw new RuntimeException($service . ' isteği başarısız (HTTP ' . intval($status) . '). ' . $detail);
+        }
         if (!is_array($data)) { throw new RuntimeException('API yanıtı çözümlenemedi.'); }
         return $data;
     }
